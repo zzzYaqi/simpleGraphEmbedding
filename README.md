@@ -1,4 +1,4 @@
-# simpleGraphEmbedding
+# Graph Embedding project Idea
 
 This a project focused on graph embedding, featuring a custom-crafted dataset and exploring two key applications: Link Prediction and Clustering. The languages included: Python, Javascript, HTML, CSS.
 
@@ -17,8 +17,10 @@ The results of graph embedding, link prediction and clustering:
 ![image](https://github.com/zzzYaqi/simpleGraphEmbedding/blob/main/pic/Link%20prediction.png)
 ![image](https://github.com/zzzYaqi/simpleGraphEmbedding/blob/main/pic/cluster-sp.png)
 
-# instruction
+# Instruction
 
 If you'd like to run the server and explore the website, please run the command:
+
 cd graphEmbWeb
+
 py manage.py runserver
