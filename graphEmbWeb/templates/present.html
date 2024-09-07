@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Graph Embedding</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
+</head>
+<body>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/graphstyle.css' %}">
+
+<button onclick="showContent('content1')">Application</button>
+<button onclick="showContent('content2')">Evaluation</button>
+
+<div id="content1">内容 1
+    <div class="app-container">
+        <div id="people-nav"></div>
+        <div id="buttons-container">
+            <div id="button-container">
+                    <button class="styled-button">ID</button>
+                    <div class="button-text">Button Text</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="content2" style="display: none;">内容 2</div>
+
+<script>
+    function showContent(contentId) {
+      // 首先隐藏所有内容
+      document.getElementById('content1').style.display = 'none';
+      document.getElementById('content2').style.display = 'none';
+
+      // 然后显示指定的内容
+      document.getElementById(contentId).style.display = 'block';
+    }
+
+    var uid = {{ uid|safe }};
+    var ulike = {{ ulike|safe}};
+    var node_name = {{ node_name|safe }};
+    console.log(uid);
+    console.log(ulike);
+    console.log(node_name);
+    function createUserButton(){
+        const container = document.getElementById("people-nav");
+
+        Object.values(uid).forEach((person, index) => {
+            let button = document.createElement("button");
+            button.textContent = person;
+            button.id = 'person' + index;
+            button.onclick = () => switchPerson(index);
+            container.appendChild(button);
+        });
+    }
+    createUserButton();
+
+    function createButtonsForPerson(UserId) {
+        // 获取当前人的按钮选中状态数组
+        const selections = ulike[UserId];
+        console.log(selections);
+        // 创建按钮数组
+        let buttonscons = [];
+
+        // 遍历选中状态数组，为每个状态创建一个按钮
+        for (let i = 0; i < 35; i++) {
+            const buttonContainer = document.createElement("div");
+            buttonContainer.className = "buttons-container";
+
+            const button = document.createElement("button");
+            button.textContent = i;
+
+            const buttonText = document.createElement("div");
+            buttonText.className = "button-text";
+            buttonText.textContent = node_name[i];
+
+            // 根据选中状态设置按钮样式或类名
+            if (selections.includes(i.toString())) {
+                button.classList.add("selected"); // 假设 "selected" 是表示按钮选中的样式
+            } else {
+                button.classList.remove("selected");
+            }
+
+            buttonContainer.appendChild(button);
+            buttonContainer.appendChild(buttonText);
+
+            buttonscons.push(buttonContainer);
+        }
+
+        return buttonscons;
+    }
+
+    function switchPerson(selectedButton) {
+        const previousActiveButton = document.querySelector("#people-nav .active");
+        if (previousActiveButton) {
+            previousActiveButton.classList.remove("active");
+        }
+
+        const currentButton = document.getElementById('person'+selectedButton);
+        // 为当前选中的人物切换按钮添加 'active' 类
+        if (currentButton) {
+            currentButton.classList.add("active");
+        }
+
+        // 以下是更新当前选中人物的按钮集的代码...
+        const container = document.getElementById("buttons-container");
+        container.innerHTML = ''; // 清空容器以显示新的按钮集
+
+        // 为当前人创建按钮
+        let buttons = createButtonsForPerson(selectedButton);
+        // 将按钮添加到容器中
+        buttons.forEach(button => container.appendChild(button));
+    }
+
+    // 初始化为第一个人的按钮
+    switchPerson(0);
+
+</script>
+</body>
+</html>

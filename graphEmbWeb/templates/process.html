@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Graph Embedding</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+</head>
+<body>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/processstyle.css' %}">
+<div>
+    <form class="Form" action="{% url 'process' %}" method="post">
+        {% csrf_token %}
+        <h2>Update DeepWalk Parameters</h2>
+        <div>
+            <label for="walkLength">Walk Length:</label>
+            <input type="number" id="walkLength" name="walkLength" min="1" value="{{ walk_length }}">
+
+            <label for="numWalks">NumberofWalks:</label>
+            <input type="number" id="numWalks" name="numWalks" min="1" value="{{ num_walks }}">
+        </div>
+        <div>
+            <label for="dimensions">Dimensions:</label>
+            <input type="number" id="dimensions" name="dimensions" min="1" value="{{ dimensions }}">
+            <label for="windowSize">Window Size:</label>
+            <input type="number" id="windowSize" name="windowSize" min="1" value="{{ window_size }}">
+
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+    <script>
+    document.getElementById('deepWalkForm')
+        .addEventListener('submit', function(event) {
+            event.preventDefault();  // 阻止表单的默认提交行为
+            var formData = new FormData(this);  // 'this' 指向表单
+
+            fetch(`{% url 'process' %}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+    </script>
+  <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+    <div id="tsne_dw" style="width: 600px;height:350px;"></div>
+    <script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('tsne_dw'));
+        var embeddings = {{ embedding_data|safe }};
+		var coordsList = embeddings.map(item => {
+            return {
+                id:item.id,
+                name: item.name,
+                value: [...item.coord,item.group],  // 散点图的坐标值
+                groupId: item.group
+            }
+        });
+
+        var pieces = [];
+        for (var i = 1; i <= 6; i++) {
+            pieces.push({
+                value: i,
+                label: getGroupLabel(i),  // 使用 getGroupLabel 函数获取标签
+                color: getColorForGroup(i)  // 使用 getColorForGroup 函数获取颜色
+            });
+        }
+        function getGroupLabel(i){
+            const groupToLabel = {
+                '1':"Action",
+                '2':"Role-Playing",
+                '3':"Strategy",
+                '4':"Adventure",
+                '5':"Simulation",
+                '6':"Sports&Racing"
+            };
+            return groupToLabel[i];
+        }
+        function getColorForGroup(group) {
+            const groupToColor = {
+                '1':"#2ec7c9",
+                '2':"#b6a2de",
+                '3':"#5ab1ef",
+                '4':"#ffb980",
+                '5':"#d87a80",
+                '6':"#8d98b3"
+            };
+            return groupToColor[group];
+        }
+        console.log(coordsList);
+        var option = {
+            tooltip: {
+                trigger: 'item',  // 触发类型为数据项图形
+                position: 'top',  // 提示框位置
+                formatter: function (params) {
+                    return 'ID: ' + params.data.id +' '+ 'Name: ' + params.data.name;
+                }
+            },
+            xAxis: {
+                axisLabel: {
+                    show: false
+                },
+                scale:true
+            },
+            yAxis: {
+                axisLabel: {
+                    show: false
+                },
+                scale:true
+            },
+             visualMap: {
+                type: 'piecewise',
+                orient: 'horizontal',
+                top: '5%',
+                min: 1,
+                max: 6,
+                left: 'center',
+                splitNumber: 6,
+                dimension: 2,
+                itemWidth: 20,
+                itemGap: 0,
+                textGap: 2,
+                textStyle: {
+                    fontSize: 12  // 减小文字大小
+                },
+                pieces: pieces
+             },
+            series:{
+                symbolSize: 15,
+                data: coordsList,
+                type: 'scatter',
+                itemStyle: {
+                    borderColor: '#555'
+                }
+            }
+        };
+        myChart.setOption(option);
+    </script>
+</div>
+    <svg id="svgBasic" width="400" height="400"></svg>
+    <div>
+        <button id="startAnimation">Animation Start</button>
+
+        </div>
+    <div id="walkpath-container">
+        <h3>Walk Paths:</h3>
+        <!-- Walk paths will be added here -->
+    </div>
+
+
+    <script>
+        var deepwalk_data = {{ deepwalks_dict|safe }};
+        var deepwalk = deepwalk_data.walks;
+        console.log(deepwalk);
+        var graphnodes = {{ graph_json.nodes|safe }};
+        var graphlinks = {{ graph_json.links|safe }};
+        var svg = d3.select("#svgBasic");
+        const width = 400;
+        const height = 400;
+        const color = d3.scaleOrdinal([
+            "#2ec7c9",
+            "#b6a2de",
+            "#5ab1ef",
+            "#ffb980",
+            "#d87a80",
+            "#8d98b3"]);
+
+        svg.attr("viewBox", [0, 0, width, height])
+            .attr("height",height)
+            .attr("width",width)
+            .attr("style", "max-width: 100%; height: auto;")
+            .style("fill","white");
+
+        var simulation = d3.forceSimulation(graphnodes)
+            .force("link", d3.forceLink(graphlinks).id(d => d.id))
+            .force("charge", d3.forceManyBody().strength(-250))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("x", d3.forceX().x(width / 2).strength(node => nodeIsIsolated(node) ? 0.25 : 0.1))
+            .force("y", d3.forceY().y(height / 2).strength(node => nodeIsIsolated(node) ? 0.25 : 0.1))
+            .on("tick", ticked);
+
+        var link = svg
+            .attr("stroke", "#4a5375")
+            .attr("stroke-opacity", 0.7)
+            .append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(graphlinks)
+            .enter()
+            .append("line")
+            .attr("stroke-width", function(d) {
+              return 1.5;
+            });
+
+        var node = svg.append("g")
+            .attr("stroke", "#555")
+            .attr("stroke-width", 1)
+            .attr("stroke-opacity", 0.8)
+            .selectAll("circle")
+            .data(graphnodes)
+            .join("circle")
+            .attr("r", 10)
+            .attr("fill", d => color(d.group))
+            .attr("id", d => d.id); // 为每个节点设置ID
+
+        node.append("title")
+            .text(d => d.name);
+            // 在节点旁边显示ID
+
+        node.call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+        var labels = svg.append("g")
+            .attr("stroke", "white")
+            .attr("class", "labels")
+            .selectAll("text")
+            .data(graphnodes)
+            .enter()
+            .append("text")
+            .attr("x", d => d.x)
+            .attr("y", d => d.y)
+            .text(d => d.id) // 显示节点ID
+            .style("fill","white")
+            .style("font-size", "10px")
+            .style("text-anchor", "middle") // 将文本锚点设置为中间
+            .attr("dy", ".35em")
+            .style("pointer-events", "none");
+
+        function ticked() {
+            link.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            labels.attr("x", d => d.x)
+                  .attr("y", d => d.y);
+
+            node.attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        function dragended(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        function nodeIsIsolated(node) {
+            return !graphlinks.some(link => link.source.id === node.id || link.target.id === node.id);
+        }
+
+        let pathIndex = 0;
+        let keepAnimating = false;  // 控制动画是否继续的标志
+
+        const animateNextPath = () => {
+            if (pathIndex < deepwalk.length && keepAnimating) {
+                const container = document.getElementById('walkpath-container');
+
+                // 创建一个新的元素来显示当前 walkpath
+                const walkPathElement = document.createElement('div');
+                walkPathElement.textContent = 'Path '
+                    + (pathIndex + 1) + ':  ' + deepwalk[pathIndex].join(' -> ');
+                container.appendChild(walkPathElement);
+
+                animatePath(deepwalk[pathIndex], animateNextPath);
+            }
+        };
+
+        function animatePath(path, callback) {
+            svg.selectAll("circle").attr("fill", d => color(d.group));  // 恢复初始颜色
+            svg.selectAll("line").attr("stroke", "#4a5375");
+
+            console.log(path);
+            let delay = 500;
+            const duration = 700; // 每步动画的持续时间
+            let totalDuration = 0;
+            if (path.length === 1) {
+                const singleNode = path[0];
+
+                // 高亮单个节点
+                svg.selectAll("circle")
+                    .filter(d => d.id === singleNode)
+                    .transition().delay(delay).duration(duration)
+                    .attr("fill", "red");  // 假设高亮颜色为红色
+
+                // 在动画完成后恢复节点的初始颜色，并调用回调函数继续动画
+                svg.selectAll("circle")
+                    .filter(d => d.id === singleNode)
+                    .transition().delay(delay + duration).duration(duration)
+                    .attr("fill", d => color(d.group));  // 恢复初始颜色
+
+                // 调用回调函数以处理下一个路径
+                setTimeout(callback, delay + 2 * duration);
+                pathIndex++;
+                return; // 退出函数
+            }
+
+            for (let i = 0; i < path.length - 1; i++) {
+                totalDuration += duration;
+
+                const source = path[i];
+                const target = path[i + 1];
+
+                // 高亮节点
+                svg.selectAll("circle")
+                    .filter(d => d.id === source)
+                    .transition().delay(delay).duration(duration)
+                    .attr("fill", "red");  // 假设高亮颜色为红色
+
+                // 高亮连线
+                svg.selectAll("line")
+                    .filter(d => (d.source.id === source && d.target.id === target) || (d.source.id === target && d.target.id === source))
+                    .transition().delay(delay).duration(duration)
+                    .attr("stroke", "red");
+
+                svg.selectAll("circle")
+                    .filter(d => d.id === target)
+                    .transition().delay(delay).duration(duration)
+                    .attr("fill", "red");  // 假设高亮颜色为红色
+                delay += duration;
+            }
+            pathIndex++;
+
+            // 恢复节点和连线的初始颜色
+            svg.selectAll("circle")
+                .filter(d => path.includes(d.id))
+                .transition().delay(totalDuration+500).duration(duration)
+                .attr("fill", d => color(d.group));  // 恢复初始颜色
+
+            svg.selectAll("line")
+                .filter(d => path.includes(d.source.id) && path.includes(d.target.id))
+                .transition().delay(totalDuration+500).duration(duration)
+                .attr("stroke", "#4a5375");
+
+            setTimeout(callback, totalDuration + 800);
+        }
+
+        document.getElementById('startAnimation').addEventListener('click', function() {
+            if(keepAnimating == false){
+                // 触发动画的逻辑
+                keepAnimating = true;  // 允许动画继续
+                animateNextPath();
+            }
+
+        });
+
+    </script>
+
+    <div id="dw_path" style="width: 200px; height:400px;"></div>
+</body>
+</html>

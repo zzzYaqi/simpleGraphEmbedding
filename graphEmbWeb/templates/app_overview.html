@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Basic -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!-- Mobile Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <!-- Site Metas -->
+  <link rel="icon" href="images/fevicon.png" type="image/gif" />
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <title>GraphEmbedding</title>
+
+  {% load static %}
+  <!-- bootstrap core css -->
+  <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+<!-- fonts style -->
+  <link href="https://fonts.googleapis.com/css?family=Poppins:400,600,700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+  <!-- font awesome style -->
+
+ <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+  <!-- Custom styles for this template -->
+
+  <!-- responsive style -->
+  <link rel="stylesheet" type="text/css" href="{% static 'css/responsive.css' %}">
+
+  <link rel="stylesheet" type="text/css" href="{% static 'css/graphstyle.css' %}">
+
+</head>
+<body>
+
+  <div class="hero_area">
+    <!-- header section strats -->
+    <header class="header_section long_section px-0">
+      <nav class="navbar navbar-expand-lg custom_nav-container ">
+        <div class="head">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <div class="d-flex mx-auto flex-column flex-lg-row align-items-center">
+            <a class="navbar-brand" href="">
+              <span>
+                Graph Embedding Explore
+              </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class=""> </span>
+            </button>
+
+              <ul class="navbar-nav">
+                <li class="nav-item active">
+                  <a class="nav-link" href="/app/overview">Application <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/eva/overview">Evaluation</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+              <div class="dropdown">
+                <button class="dropbtn" style="font-weight: bold;">Explore</button>
+                <div class="dropdown-content">
+                  <a href="/app/overview">Overview</a>
+                  <a href="/app/game">GameGraph</a>
+                  <a href="/app/user">UserGraph</a>
+                </div>
+              </div>
+          </div>
+      </nav>
+    </header>
+
+      <!-- slider section -->
+      <section class="slider_section long_section">
+
+        <div id="customCarousel" class="carousel slide" data-ride="carousel">
+
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="row">
+                    <div class="col-md-6" style="padding-top: 15px;">
+                         <!-- dataset section -->
+                      <div class="detail-box" style="margin-left: 15px;">
+                        <h3>DateSet:
+                        </h3>
+                        <p>
+                          Collected manually. The left column is represented the User. The right part is all games that
+                          are selected if the game is liked by the user on the left.
+                        </p>
+                      </div>
+                      <div class="app-container">
+                        <div id="people-nav"></div>
+                        <div id="buttons-container">
+                            <div id="button-container">
+                                    <button class="styled-button">ID</button>
+                                    <div class="button-text">Button Text</div>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <!-- two graphs -->
+                      <div style="font-size:26px;margin-top: 20px;">
+                        <a href="/app/game" style="text-decoration: underline;color:black;z-index: 3;position: relative;">GameGraph:
+                        </a>
+                        <div style="margin-top: -50px;z-index: 1;position: relative;">
+                        <svg id="svgBasic_1" width=750 height=550></svg>
+                        </div>
+                      </div>
+                     <div style="font-size:26px;">
+                        <a href="/app/user" style="text-decoration: underline;color:black;">UserGraph:
+                        </a>
+                       <div style="margin-top: -50px;margin-left:50px">
+                        <svg id="svgBasic_2" width=550 height=400></svg></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+        </section>
+        <!-- end slider section -->
+  </div>
+
+
+  <!-- footer section -->
+  <footer class="footer_section">
+    <div class="container">
+      <p>
+        &copy; <span id="displayYear"></span> All Rights Reserved By
+        <a href="https://html.design/">Developer</a>
+      </p>
+    </div>
+  </footer>
+  <!-- footer section -->
+  <script>
+        var graphnodes = {{ game_graph_json.nodes|safe }};
+        var graphlinks = {{ game_graph_json.links|safe }};
+        var svg = d3.select("#svgBasic_1");
+        const width_g = 750;
+        const height_g = 550;
+        const color = d3.scaleOrdinal([
+            "#2ec7c9",
+            "#b6a2de",
+            "#5ab1ef",
+            "#ffb980",
+            "#d87a80",
+            "#8d98b3"]);
+
+        svg.attr("viewBox", [0, 0, width_g, height_g])
+            .attr("height",height_g)
+            .attr("width",width_g)
+            .attr("style", "max-width: 100%; height: auto;")
+            .style("fill","white");
+
+        var simulation = d3.forceSimulation(graphnodes)
+            .force("link", d3.forceLink(graphlinks).id(d => d.id))
+            .force("charge", d3.forceManyBody().strength(-550))
+            .force("center", d3.forceCenter(width_g / 2, height_g / 2))
+            .force("x", d3.forceX().x(width_g / 2).strength(node => nodeIsIsolated(node) ? 0.25 : 0.1))
+            .force("y", d3.forceY().y(height_g / 2).strength(node => nodeIsIsolated(node) ? 0.25 : 0.1))
+            .on("tick", ticked_g);
+
+        var link = svg.attr("stroke", "#4a5375")
+            .attr("stroke-opacity", 0.7)
+            .append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(graphlinks)
+            .enter()
+            .append("line")
+            .attr("stroke-width", function(d) {
+              return 1.5;
+            });
+
+        var node = svg.append("g")
+            .attr("stroke", "#555")
+            .attr("stroke-width", 1)
+            .attr("stroke-opacity", 0.8)
+            .selectAll("circle")
+            .data(graphnodes)
+            .join("circle")
+            .attr("r", 17)
+            .attr("fill", d => color(d.group))
+            .attr("id", d => d.id);
+
+        node.append("title")
+            .text(d => d.name);
+
+        node.call(d3.drag()
+            .on("start", dragstarted_g)
+            .on("drag", dragged)
+            .on("end", dragended_g));
+
+        var labels = svg.append("g")
+            .attr("stroke", "white")
+            .attr("class", "labels")
+            .selectAll("text")
+            .data(graphnodes)
+            .enter()
+            .append("text")
+            .attr("x", d => d.x)
+            .attr("y", d => d.y)
+            .text(d => d.id)
+            .style("fill","white")
+            .style("font-size", "17px")
+            .style("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("pointer-events", "none");
+
+        var user_graphnodes = {{ user_graph_json.nodes|safe }};
+        var user_graphlinks = {{ user_graph_json.links|safe }};
+        const width_u = 550;
+        const height_u = 400;
+        var svg_u = d3.select("#svgBasic_2");
+
+        svg_u.attr("viewBox", [0, 0, width_u, height_u])
+            .attr("height", height_u)
+            .attr("width", width_u)
+            .attr("style", "max-width: 100%; height: auto;")
+            .style("fill","white");
+
+        var simulation_u = d3.forceSimulation(user_graphnodes)
+            .force("link", d3.forceLink(user_graphlinks).id(d => d.id))
+            .force("charge", d3.forceManyBody().strength(-700))
+            .force("center", d3.forceCenter(width_u / 2, height_u / 2))
+            .on("tick", ticked_u);
+
+        var link_u = svg_u
+            .attr("stroke", "#4a5375")
+            .attr("stroke-opacity", 0.7)
+            .append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(user_graphlinks)
+            .enter()
+            .append("line")
+            .attr("stroke-width", function(d) {
+              return 1.5;
+            });
+
+        var node_u = svg_u.append("g")
+            .attr("stroke", "#555")
+            .attr("stroke-width", 1)
+            .attr("stroke-opacity", 0.8)
+            .selectAll("circle")
+            .data(user_graphnodes)
+            .join("circle")
+            .attr("r", 17)
+            .attr("fill", d => color(d.group))
+            .attr("id", d => d.id);
+
+        node_u.append("title")
+            .text(d => d.name);
+
+        node_u.call(d3.drag()
+            .on("start", dragstarted_u)
+            .on("drag", dragged)
+            .on("end", dragended_u));
+
+        var labels_u = svg_u.append("g")
+            .attr("stroke", "white")
+            .attr("class", "labels")
+            .selectAll("text")
+            .data(user_graphnodes)
+            .enter()
+            .append("text")
+            .attr("x", d => d.x)
+            .attr("y", d => d.y)
+            .text(d => d.id)
+            .style("fill","white")
+            .style("font-size", "17px")
+            .style("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("pointer-events", "none");
+
+        function ticked_g() {
+            link.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            labels.attr("x", d => d.x)
+                  .attr("y", d => d.y);
+            node.attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        function ticked_u() {
+            link_u.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            labels_u.attr("x", d => d.x)
+                  .attr("y", d => d.y);
+            node_u.attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        function dragstarted_u(event) {
+            if (!event.active) simulation_u.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragended_u(event) {
+            if (!event.active) simulation_u.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        function dragstarted_g(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        function dragended_g(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        function nodeIsIsolated(node) {
+        return !graphlinks.some(link => link.source.id === node.id || link.target.id === node.id);
+        }
+
+  </script>
+<!-- dataset -->
+  <script>
+    var uid = {{ uid|safe }};
+    var ulike = {{ ulike|safe}};
+    var node_name = {{ node_name|safe }};
+    function createUserButton(){
+        const container = document.getElementById("people-nav");
+
+        Object.values(uid).forEach((person, index) => {
+            let button = document.createElement("button");
+            button.textContent = person;
+            button.id = 'person' + index;
+            button.onclick = () => switchPerson(index);
+            container.appendChild(button);
+        });
+    }
+    createUserButton();
+
+    function createButtonsForPerson(UserId) {
+        const selections = ulike[UserId];
+        let buttonscons = [];
+
+        for (let i = 0; i < 36; i++) {
+            const buttonContainer = document.createElement("div");
+            buttonContainer.className = "button-container";
+
+            const button = document.createElement("button");
+            button.textContent = i;
+
+            const buttonText = document.createElement("div");
+            buttonText.className = "button-text";
+            buttonText.textContent = node_name[i];
+
+            if (selections.includes(i.toString())) {
+                button.classList.add("selected");
+            } else {
+                button.classList.remove("selected");
+            }
+
+            buttonContainer.appendChild(button);
+            buttonContainer.appendChild(buttonText);
+
+            buttonscons.push(buttonContainer);
+        }
+
+        return buttonscons;
+    }
+
+    function switchPerson(selectedButton) {
+        const previousActiveButton = document.querySelector("#people-nav .active");
+        if (previousActiveButton) {
+            previousActiveButton.classList.remove("active");
+        }
+
+        const currentButton = document.getElementById('person'+selectedButton);
+        if (currentButton) {
+            currentButton.classList.add("active");
+        }
+
+        const container = document.getElementById("buttons-container");
+        container.innerHTML = '';
+
+        let buttons = createButtonsForPerson(selectedButton);
+        buttons.forEach(button => container.appendChild(button));
+    }
+
+    switchPerson(0);
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,261 @@
+/* 默认样式 */
+button {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer; /* 添加鼠标指针样式 */
+    width:90%;
+    height: 40px;
+    border-radius: 20px;
+}
+
+/* 按钮被选中时的样式 */
+.selected {
+  background-color: #5ab1ef;
+  color: white;
+  border-color: #0056b3;
+}
+
+/* SVG 文本样式 */
+#svgBasic .labels text {
+    fill: white; /* 设置文本颜色为白色 */
+}
+
+/* 应用容器样式 */
+.app-container {
+    display: flex;
+    flex-direction: row; /* 水平排列子元素 */
+    align-items: flex-start; /* 子元素顶部对齐 */
+    padding: 10px; /* 容器内边距 */
+    width: 95%;
+    margin: 15px auto;
+    background: #5c6373;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 人物导航样式 */
+#people-nav {
+    height: 600px; /* 或你需要的高度 */
+    flex-direction: column; /* 确保子元素竖直排列 */
+    align-items: center; /* 子元素在交叉轴上居中对齐 */
+    margin-right: 5px; /* 与按钮容器之间的间距 */
+    padding: 10px;
+    overflow: auto; /* 在内容溢出时显示滚动条 */
+    width: fit-content;
+}
+
+/* 人物导航按钮样式 */
+#people-nav button {
+    width: 80px; /* 设置按钮宽度 */
+    height: 80px; /* 设置按钮高度为与宽度相同，以形成圆形 */
+    margin: 5px 0; /* 设置上下边距以分开每个按钮 */
+    border-radius: 50%; /* 圆形 */
+    align-items: center; /* 垂直居中对齐内部元素 */
+    justify-content: center; /* 水平居中对齐内部元素 */
+    background-color: white; /* 背景颜色 */
+    color: #5c6373; /* 文本颜色 */
+    font-size: 16px; /* 文本大小 */
+    word-wrap: break-word;
+}
+
+.button-text {
+    word-break: break-word; /* 确保长文本可以在边界处换行 */
+}
+
+/* 选中按钮的样式 */
+#people-nav button.active {
+    background-color: #5ab1ef !important; /* 选中按钮的背景颜色 */
+    color: white !important; /* 选中按钮的文本颜色 */
+}
+
+/* 按钮容器样式 */
+#buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    max-width: 600px;
+    padding: 10px;
+}
+
+.button-container {
+    height:16.666%;
+    width: 16.666%;
+    word-wrap: break-word;
+    font-size: 14px; /* 文本大小 */
+}
+
+.button-text {
+  word-break: break-word; /* 确保长文本可以在边界处换行 */
+}
+
+/* 按钮样式 */
+.styled-button {
+    width: 120px; /* 按钮固定宽度 */
+    height: 40px; /* 按钮固定高度 */
+    margin: 5px; /* 按钮间距 */
+    border-radius: 20px; /* 圆弧形边角 */
+}
+
+/* 按钮下方文本样式 */
+.button-text {
+    width: 100%; /* 与按钮宽度相同 */
+    text-align: center; /* 文本居中对齐 */
+    word-wrap: break-word; /* 允许长单词换行 */
+    margin-bottom: 10px; /* 在文本和下一个按钮之间添加一些空间 */
+    color: white;
+}
+
+.fixed-bottom {
+    position: fixed; /* 使用固定定位 */
+    bottom: 0; /* 置于底部 */
+    left: 0; /* 从左侧开始 */
+    width: 100%; /* 宽度占满整个视窗的宽度 */
+    background-color: #333; /* 背景颜色 */
+    color: white; /* 文本颜色 */
+    text-align: center; /* 文本居中 */
+    padding: 10px 0; /* 上下填充 */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width:10%;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 20px; /* 圆弧形边角 */
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+    border-radius: 20px; /* 圆弧形边角 */
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+  border-radius: 20px; /* 圆弧形边角 */
+  color: white;
+}
+
+.dropdown:hover .dropbtn {
+  background-color: #5ab1ef;
+  color: white;
+    border-radius: 20px; /* 圆弧形边角 */
+}
+
+.head{
+    width:100%;
+    display: flex;
+  justify-content: space-between; /* 使两个子容器之间的间隔平均分布 */
+}
+
+.button-group {
+    display: flex;
+      width: 100%;
+}
+
+.button-group button {
+  background-color: #f1f1f1;; /* 设置默认背景色 */
+  color: #000; /* 设置默认文字颜色 */
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-right: 10px; /* 按钮之间的间距 */
+}
+
+.button-group button:focus {
+  outline: none; /* 移除聚焦时的虚线边框 */
+}
+
+.button-group button.selected {
+  background-color: #5ab1ef; /* 设置选中时的背景色 */
+  color: #fff; /* 设置选中时的文字颜色 */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+    background-color: #f1f1f1;
+  border-radius: 8px;
+  padding: 10px;
+    width: 250px;
+  margin-left:15px;
+  height:310px;
+      align-items: center;
+}
+
+.parameters{
+    height:245px;
+    overflow-y: auto; /* 允许垂直滚动 */
+    scrollbar-width: thin; /* 滚动条宽度 */
+    display: grid;
+     align-items: center; /* 垂直居中 */
+ }
+
+.formline {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* 可以调整间距 */
+  margin-right: 10px;
+}
+
+.formline label {
+  margin-right: 10px; /* 可以调整 label 和 input 之间的间距 */
+  white-space: nowrap; /* 不换行 */
+}
+
+.form input {
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width:90px;
+}
+
+.form button {
+  border: none;
+  background-color: #5ab1ef;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+}
+
+.form button:hover {
+  background-color: #4b9cdb;
+}
+
+.process{
+    margin-top:10px;
+   width:100%;
+   height:150px;
+   display: flex;
+}
+
+.process .buttonscontainer{
+    width:200px;
+    margin-left:10px;
+}
+
+.scroll-box {
+  overflow-y: auto; /* 允许垂直滚动 */
+  height:150px;/* 设定最大高度，超出部分将自动滚动 */
+  width:600px;
+  border: 1px solid #ccc; /* 可以根据需要添加边框样式 */
+  padding: 10px; /* 可以根据需要添加内边距 */
+
+  border-radius: 8px;
+}
